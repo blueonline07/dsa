@@ -1,5 +1,4 @@
 #include "main.h"
-extern int MAXSIZE;
 class imp_res : public Restaurant
 {
 	customer *cur;
@@ -8,7 +7,7 @@ class imp_res : public Restaurant
 	int curSize,qSize;
 	public:	
 		imp_res() {
-			cur= 0;
+			cur=qHead = qCur = first = last =  nullptr;
 			curSize =qSize =  0;
 		};
 		void deleteNode(customer* p){
@@ -19,7 +18,7 @@ class imp_res : public Restaurant
 			else cur = cur->prev;
 			if(pPrev) pPrev->next = pNext;
 			if(pNext) pNext->prev = pPrev;
-			p->next = p->prev = 0;
+			// p->next = p->prev = 0;
 			delete p;
 			curSize--;
 			if(curSize==1)
@@ -31,7 +30,7 @@ class imp_res : public Restaurant
 			
 			qHead = qHead->next;
 			
-			temp->next = temp->prev = nullptr;
+			// temp->next = temp->prev = nullptr;
 			delete temp;
 			if(qHead)
 				qHead->prev = nullptr;
@@ -220,30 +219,160 @@ class imp_res : public Restaurant
 				else break;
 			}
 		}
-		void shellSort(int pos){
-			cout<<"SHELLSORT HERE"<<endl;
+		int inssort(customer*p, int n , int incr){
+			int N = 0;
+			for(int i = incr; i<n; i+=incr){
+				int q = incr;
+				
+				while(q--){
+					p = p->next;
+				}
+				customer* p1 = p;
+				for(int j =i; j>= incr; j-=incr){
+					q = incr;
+					customer* p2 = p1;
+					while(q--){
+						p2 = p2->prev;
+					}
+					if(abs(p2->energy) < abs(p1->energy) && incr != 1){
+						if(p==p1){
+							p = p2;
+						}
+						customer* prevP2 = p2->prev;
+						customer* nextP2 = p2->next;
+						customer* prevP1 = p1->prev;
+						customer* nextP1 = p1->next;
+						customer* temp = p2;
+						p2 = p1;
+						p1 = temp;
+						if(prevP2){
+							prevP2 ->next = p2;
+							p2->prev = prevP2;
+						}
+						else{
+							qHead = p2;
+							p2->prev = nullptr;
+						}
+						p2->next = nextP2;
+						nextP2->prev = p2;
+
+						if(nextP1){
+							nextP1 ->prev = p1;
+							p1->next = nextP1;
+						}
+						else{
+							qCur = p1;
+							p1->next = nullptr;
+						}
+						p1->prev = prevP1;
+						prevP1->next = p1;
+						N++;
+					}
+					if(abs(p2->energy) < abs(p1->energy) && incr ==1){
+						if(p==p1) p = p2;
+						customer* prevNode = p2->prev;
+						customer* nextNode = p1->next;
+						customer* temp = p2;
+						p2 = p1;
+						p1 = temp;
+						p2->next = p1;
+						p1->prev = p2;
+						p1->next = nextNode;
+						if(nextNode) nextNode->prev = p1;
+						else qCur = p1;
+						p2->prev = prevNode;
+						if(prevNode) prevNode->next = p2;
+						else qHead  = p2;
+						N++;
+					}
+					q = incr;
+					while(q--){
+						p1= p1->prev;
+					}
+				}
+			}
+			return N;
 		}
-		void PURPLE()
+		int shellSort(int n){
+			int N = 0;
+			customer* p = qHead;
+			for(int i= n/2; i>2; i/=2){
+				for(int j =0; j<i; j++){
+					N+=inssort(p,n-j, i);
+					cout<<endl;
+					p =qHead;
+					int pos = j;
+					while(pos--){
+						p = p->next;
+					}
+					p = p->next;
+				}
+			}
+			N+=inssort(qHead,n,1);
+			return N;
+		}
+		void PURPLE() // con` bug
 		{
 			int MAX_ENERGY = 0;
-			customer* p = first;
+			customer* p = qCur;
 			int pos;
-			for(int i=0; p; i++){
+			for(int i=qSize; p; i--){
 				if(MAX_ENERGY <= p->energy){
 					MAX_ENERGY = p->energy;
 					pos = i;
 				}
+				p = p->prev;
 			}
-			shellSort(pos);
-
+			BLUE(shellSort(pos) % MAXSIZE);
 		}
-		void REVERSAL()
+		void REVERSAL() //sai
 		{
+			customer *p = cur;
+			for(int i =0; i<curSize; i++){
+				customer* temp = p->next;
+				p->next = p->prev;
+				p->prev = temp;
+				p = p->next;
+			}
 			
 		}
 		void UNLIMITED_VOID()
 		{
-			
+			if(curSize < 4) return;
+			customer* minPos = cur; 
+			customer* target = cur;
+			int res = INT_MAX;
+			int targetSize = 0;
+			customer* p = cur;
+			for(int i =0; i<curSize; i++){
+				for(int size = 4; size < curSize; size++){
+					int sum = 0;
+					
+					customer* pp =p;
+					int minEnergy = pp->energy;
+					minPos = pp;
+					sum += pp->energy;
+					for(int k=1; k< size; k++){
+						pp = pp->next;
+						sum+= pp->energy;
+						if(pp->energy < minEnergy){
+							minEnergy = pp->energy;
+							minPos = pp;
+						}
+					}
+					if(res > sum){
+						res = sum;
+						targetSize = size;
+						target = p;
+					}
+				}
+				p = p->next;
+			}
+			cout<<minPos->energy<<endl;
+			while(targetSize--){
+				target->print();
+				target = target->next;
+			}
 		}
 		void DOMAIN_EXPANSION()
 		{
@@ -362,3 +491,19 @@ class imp_res : public Restaurant
 			}
 		}
 };
+// old tc
+// RED ABC -123
+// RED BCD 456
+// RED DEF 1
+// RED A 123
+// RED B -98
+// RED C 12
+// RED D -12
+// RED E 1
+// RED H 50
+
+// RED X 1
+// RED Y 2
+// RED Z 3
+// RED M 4
+// RED G 100
