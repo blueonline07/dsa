@@ -13,32 +13,43 @@ class imp_res : public Restaurant
 		void deleteNode(customer* p){
 			customer* pPrev = p->prev;
 			customer* pNext = p->next;
-			cur = p;
-			if(cur->energy >0) cur = cur->next;
-			else cur = cur->prev;
-			if(pPrev) pPrev->next = pNext;
-			if(pNext) pNext->prev = pPrev;
+			if(pPrev == pNext){
+				cur = pPrev;
+				if(cur)
+					cur->next = cur->prev = 0;
+			}
+			else{
+				cur = p;
+				if (cur->energy > 0)
+					cur = cur->next;
+				else
+					cur = cur->prev;
+				pPrev->next = pNext;
+				pNext->prev = pPrev;
+			}
 			// p->next = p->prev = 0;
 			delete p;
 			curSize--;
-			if(curSize==1)
-				cur->next = cur->prev = nullptr;
+			// if(curSize==1)
+			// 	cur->next = cur->prev = nullptr;
 		}
 		void popQueue(){
 			
 			customer * temp = qHead;
-			
 			qHead = qHead->next;
 			
 			// temp->next = temp->prev = nullptr;
 			delete temp;
 			if(qHead)
 				qHead->prev = nullptr;
+			else{
+				qCur = 0;
+			}
 			qSize--;
 		}
 		void RED(string name, int energy)
 		{
-			
+			cout<<"red"<<endl;
 			if(!energy){
 				return;
 			}
@@ -127,9 +138,9 @@ class imp_res : public Restaurant
 					customer* p =cur;
 					customer* pos = cur;
 					for(int i=0; i<curSize; i++){
-						if( res < abs(abs(energy) - abs(p->energy))){
-							res = abs(abs(energy) - abs(p->energy));
-							((abs(energy) - abs(p->energy))<0)? isNegative = true : isNegative = false;
+						if( res < abs(energy- p->energy)){
+							res = abs(energy- p->energy);
+							(energy- p->energy<0)? isNegative = true : isNegative = false;
 							pos = p;
 						}
 						p = p->next;
@@ -140,7 +151,7 @@ class imp_res : public Restaurant
 						first = last = new customer(name, energy,nullptr,nullptr);
 					}
 					else{
-						if(energy >= cur->energy){
+						if(!isNegative){ //them ben phai
 							customer *cusNext = cur->next;
 							if(cusNext){
 								cur->next = new customer(name,energy,cur,cusNext);
@@ -149,7 +160,6 @@ class imp_res : public Restaurant
 							}
 							else {
 								cur->next = new customer(name, energy, cur,nullptr);
-								
 								cusNext= cur->next;
 								cusNext->next = cur;
 								cur->prev = cusNext;
@@ -183,9 +193,12 @@ class imp_res : public Restaurant
 		}
 		void BLUE(int num)
 		{
+			
 			if(num >= curSize){
 				num = curSize;
 			}
+			
+			
 			for(int i=0; i< num; i++){
 				customer* cus = cur;
 				for(int j=0; j<curSize; j++){
@@ -199,7 +212,6 @@ class imp_res : public Restaurant
 				}
 				first = first->next;
 				if(first){
-					first->prev->next = nullptr;
 					delete first->prev;
 					first->prev = nullptr;
 				}
@@ -218,6 +230,8 @@ class imp_res : public Restaurant
 				}
 				else break;
 			}
+			
+			
 		}
 		int inssort(customer*p, int n , int incr){
 			int N = 0;
@@ -294,12 +308,12 @@ class imp_res : public Restaurant
 			return N;
 		}
 		int shellSort(int n){
+			if(n == 0) return 0;
 			int N = 0;
 			customer* p = qHead;
 			for(int i= n/2; i>2; i/=2){
 				for(int j =0; j<i; j++){
 					N+=inssort(p,n-j, i);
-					cout<<endl;
 					p =qHead;
 					int pos = j;
 					while(pos--){
@@ -313,30 +327,180 @@ class imp_res : public Restaurant
 		}
 		void PURPLE() // con` bug
 		{
+			cout<<"purple"<<endl;
 			int MAX_ENERGY = 0;
 			customer* p = qCur;
-			int pos;
-			for(int i=qSize; p; i--){
-				if(MAX_ENERGY <= p->energy){
-					MAX_ENERGY = p->energy;
+			int pos = 0;
+			for (int i = qSize; p; i--)
+			{
+				if (MAX_ENERGY <= abs(p->energy))
+				{
+					MAX_ENERGY = abs(p->energy);
 					pos = i;
 				}
 				p = p->prev;
 			}
-			BLUE(shellSort(pos) % MAXSIZE);
+			int q = shellSort(pos) % MAXSIZE;
+			BLUE(q);
+		
 		}
-		void REVERSAL() //sai
+		void REVERSAL() 
 		{
-			customer *p = cur;
-			for(int i =0; i<curSize; i++){
-				customer* temp = p->next;
-				p->next = p->prev;
-				p->prev = temp;
-				p = p->next;
+
+			if(curSize > 1){
+				customer* p = cur;
+				while(p->energy * cur->energy > 0){
+					p = p->prev;
+					if(p->name == cur->name){
+						for(int i=0; i<curSize; i++){
+							customer* tmp = p->next;
+							p->next = p->prev;
+							p->prev = tmp;
+							p = p->prev;
+						}
+						return;
+					}
+				}
+				customer *p1 = cur;
+				customer* p2 = cur->next;
+				while(p1->energy * p2->energy < 0){
+					p2 = p2->next;
+				}
+				bool stop = false;
+				
+				while(!stop){
+					if(p2->next != p1 && p1->next != p2){
+						customer* p2Prev = p2->prev;
+						customer* p2Next = p2->next;
+						customer* p1Prev = p1->prev;
+						customer* p1Next = p1->next;
+						customer* temp = p1;
+						p1 = p2;
+						p2 = temp;
+						p1->prev = p1Prev;
+						p1Prev->next = p1;
+						p1->next = p1Next;
+						p1Next->prev = p1;
+						p2->prev = p2Prev;
+						p2Prev->next = p2;
+						p2->next = p2Next;
+						p2Next->prev = p2;
+					}
+					else if(p2->next == p1) {
+						customer* p2Prev = p2->prev;
+						customer* p1Next = p1->next;
+						customer* temp = p1;
+						p1 = p2;
+						p2 = temp;
+						p1->next = p1Next;
+						p1Next->prev = p1;
+						p1->prev = p2;
+						p2->next = p1;
+						p2->prev = p2Prev;
+						p2Prev->next = p2;
+					}
+					else{
+						customer* p1Prev = p1->prev;
+						customer* p2Next = p2->next;
+						customer* temp = p1;
+						p1 = p2;
+						p2 = temp;
+						p1->prev = p1Prev;
+						p1Prev->next = p1;
+						p1->next = p2;
+						p2->prev = p1;
+						p2->next = p2Next;
+						p2Next->prev = p2;
+					}
+					int sign = p1->energy / abs(p1->energy);
+					p1 = p1->prev;
+					while(sign* p1->energy < 0){
+						p1 = p1->prev;
+					}
+					if(p1 == p2){
+						stop = 1;
+					}
+					p2 = p2->next;
+					while(sign * p2->energy < 0){
+						p2 = p2->next;
+					}
+					if(p1 == p2){
+						stop = 1;
+					}
+
+				}
+				//---------------------
+				p1 = p;
+				p2 = p->next;
+				while(p1->energy * p2->energy < 0){
+					p2 = p2->next;
+				}
+				stop = false;
+				while(!stop){
+					
+					if(p2->next != p1 && p1->next != p2){
+						customer* p2Prev = p2->prev;
+						customer* p2Next = p2->next;
+						customer* p1Prev = p1->prev;
+						customer* p1Next = p1->next;
+						customer* temp = p1;
+						p1 = p2;
+						p2 = temp;
+						p1->prev = p1Prev;
+						p1Prev->next = p1;
+						p1->next = p1Next;
+						p1Next->prev = p1;
+						p2->prev = p2Prev;
+						p2Prev->next = p2;
+						p2->next = p2Next;
+						p2Next->prev = p2;
+					}
+					else if(p2->next == p1) {
+						customer* p2Prev = p2->prev;
+						customer* p1Next = p1->next;
+						customer* temp = p1;
+						p1 = p2;
+						p2 = temp;
+						p1->next = p1Next;
+						p1Next->prev = p1;
+						p1->prev = p2;
+						p2->next = p1;
+						p2->prev = p2Prev;
+						p2Prev->next = p2;
+					}
+					else{
+						customer* p1Prev = p1->prev;
+						customer* p2Next = p2->next;
+						customer* temp = p1;
+						p1 = p2;
+						p2 = temp;
+						p1->prev = p1Prev;
+						p1Prev->next = p1;
+						p1->next = p2;
+						p2->prev = p1;
+						p2->next = p2Next;
+						p2Next->prev = p2;
+					}
+					int sign = p1->energy / abs(p1->energy);
+					p1 = p1->prev;
+					while(sign* p1->energy < 0){
+						p1 = p1->prev;
+					}
+					if(p1 == p2){
+						stop = 1;
+					}
+					p2 = p2->next;
+					while(sign * p2->energy < 0){
+						p2 = p2->next;
+					}
+					if(p1 == p2){
+						stop = 1;
+					}
+				}
 			}
 			
 		}
-		void UNLIMITED_VOID()
+		void UNLIMITED_VOID() // in tu` phan tu nho nhat
 		{
 			if(curSize < 4) return;
 			customer* minPos = cur; 
@@ -345,37 +509,38 @@ class imp_res : public Restaurant
 			int targetSize = 0;
 			customer* p = cur;
 			for(int i =0; i<curSize; i++){
-				for(int size = 4; size < curSize; size++){
+				for(int size = 4; size <= curSize; size++){
 					int sum = 0;
-					
 					customer* pp =p;
 					int minEnergy = pp->energy;
 					minPos = pp;
 					sum += pp->energy;
+					int len = 0;
 					for(int k=1; k< size; k++){
 						pp = pp->next;
 						sum+= pp->energy;
 						if(pp->energy < minEnergy){
 							minEnergy = pp->energy;
 							minPos = pp;
+							len = k;
 						}
 					}
 					if(res > sum){
 						res = sum;
-						targetSize = size;
+						targetSize = size - len;
 						target = p;
 					}
 				}
 				p = p->next;
 			}
-			cout<<minPos->energy<<endl;
 			while(targetSize--){
-				target->print();
-				target = target->next;
+				minPos->print();
+				minPos = minPos->next;
 			}
 		}
 		void DOMAIN_EXPANSION()
 		{
+			cout<<"domain expansion"<<endl;
 			int pos = 0;
 			int neg = 0;
 			customer *p = cur;
@@ -397,28 +562,35 @@ class imp_res : public Restaurant
 					pos+= p->energy;
 				p = p->next;
 			}
-
+			
 			if((-neg) > pos){
 				customer* p = last;
 				while (p)
 				{
 					if(p->energy > 0){
 						customer * temp = p;
+						
 						customer* nextPos = p->next;
 						customer* prevPos = p->prev;
 						if(prevPos) prevPos->next = nextPos;
+						else {
+							first = p->next;
+						}
 						if(nextPos) nextPos->prev = prevPos;
+						else{
+							last = p->prev;
+						}
 
 						customer* cus= cur;
 						for(int i=0; i< curSize; i++){
 							if(cus->name == temp->name){
+								cus->print();
 								deleteNode(cus);
 								break;
 							}
+							cus = cus->next;
 						}
-
 						p = p->prev;
-						temp->next = temp->prev = nullptr;
 						delete temp;
 					}
 					else p = p->prev;
@@ -431,10 +603,17 @@ class imp_res : public Restaurant
 				{
 					if(p->energy < 0){
 						customer * temp = p;
+						
 						customer* nextPos = p->next;
 						customer* prevPos = p->prev;
 						if(prevPos) prevPos->next = nextPos;
+						else {
+							first = p->next;
+						}
 						if(nextPos) nextPos->prev = prevPos;
+						else{
+							last = p->prev;
+						}
 
 						customer* cus= cur;
 						for(int i=0; i< curSize; i++){
@@ -445,15 +624,12 @@ class imp_res : public Restaurant
 							}
 							cus = cus->next;
 						}
-
 						p = p->prev;
-						temp->next = temp->prev = nullptr;
 						delete temp;
 					}
 					else p = p->prev;
 				}
 			}
-
 			while(curSize < MAXSIZE){
 				if(qSize){
 					customer* cus = qHead;
@@ -464,12 +640,15 @@ class imp_res : public Restaurant
 				}
 				else break;
 			}
+
 		}
 		void LIGHT(int num)
 		{
-			cout<<"----------------------"<<endl;
+			static int query = 1;
+			cout<<query++<<" --------------------"<<endl;
 			if(num > 0){
 				customer *p = cur;
+				// cout<<curSize<<endl;
 				for(int i =0; i<curSize; i++){
 					p->print();
 					p = p->next;
@@ -477,6 +656,7 @@ class imp_res : public Restaurant
 			}
 			else if(num < 0){
 				customer * p = cur;
+				// cout<<curSize<<endl;
 				for(int i=0; i<curSize; i++){
 					p->print();
 					p = p->prev;
@@ -484,6 +664,7 @@ class imp_res : public Restaurant
 			}
 			else {
 				customer *p = qHead;
+				// cout<<qSize<<endl;
 				for(int i=0; i<qSize ; i++){
 					p->print();
 					p = p->next;
