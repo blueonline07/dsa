@@ -49,7 +49,6 @@ class imp_res : public Restaurant
 		}
 		void RED(string name, int energy)
 		{
-			cout<<"red"<<endl;
 			if(!energy){
 				return;
 			}
@@ -237,17 +236,17 @@ class imp_res : public Restaurant
 			int N = 0;
 			for(int i = incr; i<n; i+=incr){
 				int q = incr;
-				
 				while(q--){
 					p = p->next;
 				}
-				customer* p1 = p;
+ 				customer* p1 = p;
 				for(int j =i; j>= incr; j-=incr){
 					q = incr;
 					customer* p2 = p1;
 					while(q--){
 						p2 = p2->prev;
 					}
+					
 					if(abs(p2->energy) < abs(p1->energy) && incr != 1){
 						if(p==p1){
 							p = p2;
@@ -312,22 +311,23 @@ class imp_res : public Restaurant
 			int N = 0;
 			customer* p = qHead;
 			for(int i= n/2; i>2; i/=2){
+				p = qHead;
 				for(int j =0; j<i; j++){
 					N+=inssort(p,n-j, i);
-					p =qHead;
+					p = qHead;
 					int pos = j;
 					while(pos--){
 						p = p->next;
 					}
 					p = p->next;
 				}
+				customer * tt = qHead;
 			}
 			N+=inssort(qHead,n,1);
 			return N;
 		}
 		void PURPLE() // con` bug
 		{
-			cout<<"purple"<<endl;
 			int MAX_ENERGY = 0;
 			customer* p = qCur;
 			int pos = 0;
@@ -500,16 +500,18 @@ class imp_res : public Restaurant
 			}
 			
 		}
-		void UNLIMITED_VOID() // in tu` phan tu nho nhat
+		void UNLIMITED_VOID()
 		{
 			if(curSize < 4) return;
+			customer* finalMinPos = cur;
 			customer* minPos = cur; 
 			customer* target = cur;
 			int res = INT_MAX;
 			int targetSize = 0;
+			int fullSize = 0;
 			customer* p = cur;
 			for(int i =0; i<curSize; i++){
-				for(int size = 4; size <= curSize; size++){
+				for(int size = 1; size <= curSize; size++){
 					int sum = 0;
 					customer* pp =p;
 					int minEnergy = pp->energy;
@@ -525,22 +527,30 @@ class imp_res : public Restaurant
 							len = k;
 						}
 					}
-					if(res > sum){
+					if(res >= sum && size >= 4){
 						res = sum;
 						targetSize = size - len;
+						fullSize = size;
 						target = p;
+						finalMinPos = minPos;
 					}
 				}
 				p = p->next;
 			}
-			while(targetSize--){
-				minPos->print();
-				minPos = minPos->next;
+			cout<<"HERE "<<res<<" "<<fullSize<<endl;
+			p = finalMinPos;
+			for(int i= 0 ; i<targetSize; i++){
+				p->print();
+				p = p->next;
+			}
+			p = target;
+			for(int i =0; i< fullSize - targetSize; i++){
+				p->print();
+				p = p->next;
 			}
 		}
 		void DOMAIN_EXPANSION()
 		{
-			cout<<"domain expansion"<<endl;
 			int pos = 0;
 			int neg = 0;
 			customer *p = cur;
@@ -564,7 +574,28 @@ class imp_res : public Restaurant
 			}
 			
 			if((-neg) > pos){
-				customer* p = last;
+				customer* p = qCur;
+				while(p){
+					if(p->energy > 0){
+						p->print();
+						qSize--;
+						customer * temp = p;
+						customer* nextPos = p->next;
+						customer* prevPos = p->prev;
+						if(prevPos) prevPos->next = nextPos;
+						else {
+							qHead = p->next;
+						}
+						if(nextPos) nextPos->prev = prevPos;
+						else{
+							qCur = p->prev;
+						}
+						p = p->prev;
+						delete temp;
+					}
+					else p = p->prev;
+				}
+				p = last;
 				while (p)
 				{
 					if(p->energy > 0){
@@ -595,15 +626,34 @@ class imp_res : public Restaurant
 					}
 					else p = p->prev;
 				}
-				
 			}
 			else {
-				customer* p = last;
+				customer* p = qCur;
+				while(p){
+					if(p->energy < 0){
+						p->print();
+						qSize--;
+						customer * temp = p;
+						customer* nextPos = p->next;
+						customer* prevPos = p->prev;
+						if(prevPos) prevPos->next = nextPos;
+						else {
+							qHead = p->next;
+						}
+						if(nextPos) nextPos->prev = prevPos;
+						else{
+							qCur = p->prev;
+						}
+						p = p->prev;
+						delete temp;
+					}
+					else p = p->prev;
+				}
+				p = last;
 				while (p)
 				{
 					if(p->energy < 0){
 						customer * temp = p;
-						
 						customer* nextPos = p->next;
 						customer* prevPos = p->prev;
 						if(prevPos) prevPos->next = nextPos;
@@ -673,18 +723,3 @@ class imp_res : public Restaurant
 		}
 };
 // old tc
-// RED ABC -123
-// RED BCD 456
-// RED DEF 1
-// RED A 123
-// RED B -98
-// RED C 12
-// RED D -12
-// RED E 1
-// RED H 50
-
-// RED X 1
-// RED Y 2
-// RED Z 3
-// RED M 4
-// RED G 100
