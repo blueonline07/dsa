@@ -4,8 +4,10 @@
 #include <string>
 #include <math.h>
 
-using namespace std;
 static int MAXSIZE;
+
+using namespace std;
+
 class Restaurant {
 	public:
 		Restaurant() {};
