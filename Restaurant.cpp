@@ -196,7 +196,13 @@ class imp_res : public Restaurant
 			if(num >= curSize){
 				num = curSize;
 			}
-			
+			cout<<"------------"<<endl;
+			customer* ttt = first;
+			while(ttt){
+				ttt->print();
+				ttt = ttt->next;
+			}
+			cout<<endl<<"-------------------"<<endl;
 			
 			for(int i=0; i< num; i++){
 				customer* cus = cur;
@@ -209,14 +215,15 @@ class imp_res : public Restaurant
 						cus = cus->next;
 					}
 				}
+				customer *del = first;
 				first = first->next;
 				if(first){
-					delete first->prev;
 					first->prev = nullptr;
 				}
 				else{
 					last = nullptr; // = first
 				}
+				delete del;
 			}
 			for(int i=0; i < num; i++){
 				
@@ -512,6 +519,7 @@ class imp_res : public Restaurant
 			customer* p = cur;
 			for(int i =0; i<curSize; i++){
 				for(int size = 1; size <= curSize; size++){
+					
 					int sum = 0;
 					customer* pp =p;
 					int minEnergy = pp->energy;
@@ -528,16 +536,26 @@ class imp_res : public Restaurant
 						}
 					}
 					if(res >= sum && size >= 4){
-						res = sum;
-						targetSize = size - len;
-						fullSize = size;
-						target = p;
-						finalMinPos = minPos;
+						if(sum == res){
+							if(fullSize <= size){
+								res = sum;
+								targetSize = size - len;
+								fullSize = size;
+								target = p;
+								finalMinPos = minPos;
+							}
+						}
+						else {
+							res = sum;
+							targetSize = size - len;
+							fullSize = size;
+							target = p;
+							finalMinPos = minPos;
+						}
 					}
 				}
 				p = p->next;
 			}
-			cout<<"HERE "<<res<<" "<<fullSize<<endl;
 			p = finalMinPos;
 			for(int i= 0 ; i<targetSize; i++){
 				p->print();
